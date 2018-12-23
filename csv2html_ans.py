@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import xml.sax.saxutils
 
 
@@ -33,7 +34,7 @@ def extract_fields(line):
     return fields
 
 
-def print_line(line, color, maxwidth):
+def print_line(line, color, maxwidth, format):
     print("<tr bgcolor='{}'>".format(color))
     fields = extract_fields(line)
     for field in fields:
@@ -43,7 +44,9 @@ def print_line(line, color, maxwidth):
             number = field.replace(",", "")
             try:
                 x = float(number)
-                print("<td align='right'>{0:d}</td>".format(round(x)))
+                print("<td align='right'>{number:{format}}</td>".format(
+                    number=round(x), format=format)
+                )
             except ValueError:
                 field = field.title()
                 field = field.replace(" And ", " and ")
@@ -57,9 +60,48 @@ def print_line(line, color, maxwidth):
     print("</tr>")
 
 
+def print_usage():
+    print("usage:")
+    print("csv2html.py [maxwidth=int] [format=str] < infile.csv > outfile.html")
+    print("\nmaxwidth is an optional integer; if specified, it sets the maximum")
+    print("number of characters that can be output for string fields,")
+    print("otherwise a default of 100 characters is used.")
+    print("\nformat is the format to use for numbers; if not specified it")
+    print("defaults to \".0f\".")
+
+
+def process_options():
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ("-h", "--help"):
+            print_usage()
+            return None, None
+
+        maxwidth = None
+        format = None
+        for arg in sys.argv[1:]:
+            opt_name, eq, opt_value = arg.partition("=")
+            if opt_name == "maxwidth" and eq == "=":
+                try:
+                    maxwidth = int(opt_value)
+                except ValueError:
+                    print("error: maxwidth value should be int")
+                    return None, None
+            elif opt_name == "format" and eq == "=":
+                format = opt_value
+            else:
+                print("error: unrecognized option {}".format(opt_name))
+                return None, None
+        return maxwidth or 100, format or ".0f"
+
+    return 100, ".0f"
+
+
 def main():
+    maxwidth, format = process_options()
+    if maxwidth is None or format is None:
+        return
+
     print_start()
-    maxwidth = 100
     count = 0
     while True:
         try:
@@ -70,7 +112,7 @@ def main():
                 color = "white"
             else:
                 color = "lightyellow"
-            print_line(line, color, maxwidth)
+            print_line(line, color, maxwidth, format)
             count += 1
         except EOFError:
             break
