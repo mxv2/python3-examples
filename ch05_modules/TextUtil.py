@@ -77,7 +77,7 @@ def simplify(text, whitespace=string.whitespace, delete=""):
     string.
 
     >>> simplify(" this    and\n that\t too")
-    'this and that too
+    'this and that too'
     >>> simplify("  Washington   D.C.\n")
     'Washington D.C.'
     >>> simplify("  Washington   D.C.\n", delete=",;:.")
@@ -100,3 +100,8 @@ def simplify(text, whitespace=string.whitespace, delete=""):
     if word:
         result.append(word)
     return " ".join(result)
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
