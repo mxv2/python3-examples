@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import locale
 import os
-import sys
 from datetime import datetime
+from optparse import OptionParser
 
 FULL_PATH, IS_FILE, FILE_SIZE, FILE_MTIME = range(4)
 
@@ -106,18 +106,44 @@ def print_stats(stats, show_size, show_time, locale_id):
                                                   dir_count, "y" if dir_count == 1 else "ies"))
 
 
+def resolve_order_func(order_option):
+    if order_option in ("name", "n"):
+        return by_path_name
+    elif order_option in ("modified", "m"):
+        return by_file_mtime
+    else:
+        return by_file_size
+
+
+def process_options():
+    usage = ("%prog [options] [path1 [path2 [... pathN]]]\n"
+             "The paths are optional; if not given . is used.")
+    parser = OptionParser(usage=usage)
+    parser.add_option("-H", "--hidden",
+                      action="store_true", dest="show_hidden", default=False,
+                      help="show hidden files [default: off]")
+    parser.add_option("-m", "--modified",
+                      action="store_true", dest="show_time", default=False,
+                      help="show last modified date/time [default: off]")
+    parser.add_option("-o", "--order",
+                      type="choice", choices=["name", "n", "modified", "m", "size", "s"], default="name",
+                      help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]")
+    parser.add_option("-r", "--recursive",
+                      action="store_true", dest="recursive", default=False,
+                      help="recurse into subdirectories [default: off]")
+    parser.add_option("-s", "--sizes",
+                      action="store_true", dest="show_size", default=False,
+                      help="show sizes [default: off]")
+    return parser.parse_args()
+
+
 def main():
-    root_names = sys.argv[1:]
+    (options, args) = process_options()
 
-    recursive = False
-    show_hidden = True
-
-    stats = gather_fs_stats(root_names, recursive, show_hidden)
-
-    show_size = True
-    show_time = True
-
-    print_stats(sorted(stats, key=by_file_size), show_size, show_time, "ru_RU.UTF-8")
+    root_names = args if args else "."
+    stats = gather_fs_stats(root_names, options.recursive, options.show_hidden)
+    print_stats(sorted(stats, key=resolve_order_func(options.order)),
+                options.show_size, options.show_time, "ru_RU.UTF-8")
 
 
 main()
