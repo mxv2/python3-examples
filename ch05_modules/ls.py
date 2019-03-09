@@ -54,6 +54,8 @@ def gather_fs_stats_recursively(root_name, show_hidden):
             full_path = os.path.join(root, path)
             stat = os.stat(full_path, follow_symlinks=False)
             stats.append((full_path, True, stat.st_size, stat.st_mtime))
+
+        dirnames[:] = [dir for dir in dirnames if not is_hidden_path(dir)]
     return stats
 
 
