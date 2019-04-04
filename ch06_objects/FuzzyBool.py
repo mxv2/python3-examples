@@ -111,6 +111,24 @@ class FuzzyBool:
         self.__value = max(self.__value, other.__value)
         return self
 
+    @staticmethod
+    def conjunction(*fuzzies):
+        """
+        >>> f1, f2, f3 = FuzzyBool(0.75), FuzzyBool(0.5), FuzzyBool(0.9)
+        >>> str(FuzzyBool.conjunction(f1, f2, f3))
+        '0.5'
+        """
+        return FuzzyBool(min([float(x) for x in fuzzies]))
+
+    @staticmethod
+    def disjunction(*fuzzies):
+        """
+        >>> f1, f2, f3 = FuzzyBool(0.75), FuzzyBool(0.5), FuzzyBool(0.9)
+        >>> str(FuzzyBool.disjunction(f1, f2, f3))
+        '0.9'
+        """
+        return FuzzyBool(max([float(x) for x in fuzzies]))
+
 
 if __name__ == '__main__':
     import doctest
