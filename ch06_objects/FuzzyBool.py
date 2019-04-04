@@ -22,6 +22,18 @@ class FuzzyBool:
         return ("{0}({1})".format(self.__class__.__name__,
                                   self.__value))
 
+    def __format__(self, format_spec):
+        """
+        >>> f = FuzzyBool(0.509)
+        >>> "{0:f}".format(f)
+        '0.509'
+        >>> "{0:.2f}".format(f)
+        '0.51'
+        >>> "{0:.1f}".format(f)
+        '0.5'
+        """
+        return self.__value.__format__(format_spec)
+
     def __bool__(self):
         """
         >>> bool(FuzzyBool(.5))
