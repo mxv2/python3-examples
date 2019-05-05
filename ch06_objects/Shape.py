@@ -18,6 +18,166 @@ class Point:
     def __str__(self):
         return "({0.x!r}, {0.y!r})".format(self)
 
+    def __add__(self, other):
+        """
+        >>> q = Point(1, 5)
+        >>> r = Point(2, 10)
+        >>> p = q + r
+        >>> p
+        Point(3, 15)
+        >>> q = Point(1, 5)
+        >>> r = Point(2, -10)
+        >>> p = q + r
+        >>> p
+        Point(3, -5)
+        """
+        return Point(self.x + other.x, self.y + other.y)
+
+    def __iadd__(self, other):
+        """
+        >>> p = Point(1, 5)
+        >>> q = Point(2, 10)
+        >>> p += q
+        >>> p
+        Point(3, 15)
+        >>> p = Point(1, 5)
+        >>> q = Point(2, -10)
+        >>> p += q
+        >>> p
+        Point(3, -5)
+        """
+        self.x = self.x + other.x
+        self.y = self.y + other.y
+        return self
+
+    def __sub__(self, other):
+        """
+        >>> q = Point(1, 5)
+        >>> r = Point(2, 10)
+        >>> p = q - r
+        >>> p
+        Point(-1, -5)
+        >>> q = Point(1, 5)
+        >>> r = Point(2, -10)
+        >>> p = q - r
+        >>> p
+        Point(-1, 15)
+        """
+        return Point(self.x - other.x, self.y - other.y)
+
+    def __isub__(self, other):
+        """
+        >>> p = Point(1, 5)
+        >>> q = Point(2, 10)
+        >>> p -= q
+        >>> p
+        Point(-1, -5)
+        >>> p = Point(1, 5)
+        >>> q = Point(2, -10)
+        >>> p -= q
+        >>> p
+        Point(-1, 15)
+        """
+        self.x = self.x - other.x
+        self.y = self.y - other.y
+        return self
+
+    def __mul__(self, number):
+        """
+        >>> q = Point(1, 5)
+        >>> n = 2
+        >>> p = q * n
+        >>> p
+        Point(2, 10)
+        >>> q = Point(-1, 5)
+        >>> n = -2
+        >>> p = q * n
+        >>> p
+        Point(2, -10)
+        """
+        return Point(self.x * number, self.y * number)
+
+    def __imul__(self, number):
+        """
+        >>> p = Point(1, 5)
+        >>> n = 2
+        >>> p *= n
+        >>> p
+        Point(2, 10)
+        >>> p = Point(-1, 5)
+        >>> n = -2
+        >>> p *= n
+        >>> p
+        Point(2, -10)
+        """
+        self.x = self.x * number
+        self.y = self.y * number
+        return self
+
+    def __truediv__(self, number):
+        """
+        >>> q = Point(1, 5)
+        >>> n = 2
+        >>> p = q / n
+        >>> p
+        Point(0.5, 2.5)
+        >>> q = Point(-2, -10)
+        >>> n = 2
+        >>> p = q / n
+        >>> p
+        Point(-1.0, -5.0)
+        """
+        return Point(self.x / number, self.y / number)
+
+    def __itruediv__(self, number):
+        """
+        >>> p = Point(1, 5)
+        >>> n = 2
+        >>> p /= n
+        >>> p
+        Point(0.5, 2.5)
+        >>> p = Point(-2, -10)
+        >>> n = 2
+        >>> p /= n
+        >>> p
+        Point(-1.0, -5.0)
+        """
+        self.x = self.x / number
+        self.y = self.y / number
+        return self
+
+    def __floordiv__(self, number):
+        """
+        >>> q = Point(1, 5)
+        >>> n = 2
+        >>> p = q // n
+        >>> p
+        Point(0, 2)
+        >>> q = Point(-2, -10)
+        >>> n = 2
+        >>> p = q // n
+        >>> p
+        Point(-1, -5)
+        """
+        return Point(self.x // number, self.y // number)
+
+    def __ifloordiv__(self, number):
+        """
+        >>> p = Point(1, 5)
+        >>> n = 2
+        >>> p //= n
+        >>> p
+        Point(0, 2)
+        >>> p = Point(-2, -10)
+        >>> n = 2
+        >>> p //= n
+        >>> p
+        Point(-1, -5)
+        """
+        self.x = self.x // number
+        self.y = self.y // number
+        return self
+
 
 class Circle(Point):
     def __init__(self, radius, x=0, y=0):
