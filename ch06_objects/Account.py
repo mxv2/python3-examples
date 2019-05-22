@@ -69,11 +69,11 @@ class Transaction:
         >>> t = Transaction(1, timestamp)
         >>> t.usd
         1.0
-        >>> t = Transaction(100, timestamp, currency='RUB', usd_conversion_rate=62.5)
+        >>> t = Transaction(6250, timestamp, currency='RUB', usd_conversion_rate=62.5)
         >>> t.usd
-        6250.0
+        100.0
         """
-        return self._amount * self._usd_conversion_rate
+        return self._amount / self._usd_conversion_rate
 
     def __str__(self):
         return '{0} {1} at {2}'.format(
