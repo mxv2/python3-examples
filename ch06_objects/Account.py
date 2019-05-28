@@ -1,4 +1,213 @@
+import os
+import pickle
+import tempfile
 from datetime import datetime
+
+
+class AccountError(Exception):
+    pass
+
+
+class NoFilenameError(AccountError):
+    pass
+
+
+class SaveError(AccountError):
+    pass
+
+
+class LoadError(AccountError):
+    pass
+
+
+class Account:
+    """Account store info about account number, name and list of Transactions
+    """
+
+    def __init__(self, number, name):
+        if number is None:
+            raise ValueError('number should be provided')
+        self._verify_name(name)
+        self._number = number
+        self._name = name
+        self._transactions = []
+
+    def _verify_name(self, name):
+        if name is None:
+            raise ValueError('name should be provided')
+        if len(name) < 4:
+            raise ValueError('name should be at least 4 characters')
+
+    @property
+    def number(self):
+        """
+        >>> acc = Account(1, 'account')
+        >>> acc.number
+        1
+        >>> acc.number = 100
+        Traceback (most recent call last):
+        ...
+        AttributeError: can't set attribute
+        """
+        return self._number
+
+    @property
+    def name(self):
+        """
+        >>> acc = Account(1, 'new account')
+        >>> acc.name
+        'new account'
+        >>> acc.name = 'updated account'
+        >>> acc.name
+        'updated account'
+        >>> acc.name = 'acc'
+        Traceback (most recent call last):
+        ...
+        ValueError: name should be at least 4 characters
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._verify_name(name)
+        self._name = name
+
+    def apply(self, transaction):
+        if transaction is None:
+            raise ValueError('transaction should be provided')
+        self._transactions.append(transaction)
+
+    def __len__(self):
+        return len(self._transactions)
+
+    @property
+    def balance(self):
+        """Return balance in USD for all account transactions
+
+        >>> timestamp = datetime(2019, 5, 19, 22, 20, 0)
+        >>> acc = Account(42, 'default')
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.balance
+        100.0
+
+        >>> acc.apply(Transaction(6250, timestamp, currency='RUB', usd_conversion_rate=62.5))
+        >>> acc.balance
+        200.0
+        """
+        balance = 0
+        for t in self._transactions:
+            balance += t.usd
+        return balance
+
+    @property
+    def all_usd(self):
+        """Return balance in USD for all account transactions
+
+        >>> timestamp = datetime(2019, 5, 19, 22, 20, 0)
+        >>> acc = Account(42, 'default')
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.all_usd
+        True
+
+        >>> acc.apply(Transaction(6250, timestamp, currency='RUB', usd_conversion_rate=62.5))
+        >>> acc.all_usd
+        False
+        """
+        for t in self._transactions:
+            if t.currency != 'USD':
+                return False
+        return True
+
+    def save(self, filename=None):
+        """Save Account state in pickle format
+
+        >>> account_name = 'default'
+        >>> timestamp = datetime(2019, 5, 19, 22, 20, 0)
+        >>> acc = Account(42, account_name)
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.apply(Transaction(6250, timestamp, currency='RUB', usd_conversion_rate=62.5))
+
+        >>> tmp_dir = tempfile.gettempdir()
+        >>> dump_filename = os.path.join(tmp_dir, account_name)
+        >>> dump_full_filename = dump_filename + '.acc'
+
+        >>> acc.save(dump_full_filename)
+        >>> os.path.exists(dump_full_filename)
+        True
+
+        >>> os.remove(dump_full_filename)
+
+        >>> acc.save(dump_filename )
+        >>> os.path.exists(dump_full_filename)
+        True
+
+        >>> os.remove(dump_full_filename)
+
+        >>> acc.save()
+        >>> os.path.exists(dump_filename + '.acc')
+        True
+        """
+        if filename is not None:
+            self.filename = filename
+        if self.filename is None:
+            raise NoFilenameError(filename)
+
+        if not self.filename.endswith('.acc'):
+            self.filename += '.acc'
+
+        fd = None
+        try:
+            fd = open(self.filename, 'wb')
+            data = (self._name, self._number, self._transactions)
+            pickle.dump(data, fd, pickle.HIGHEST_PROTOCOL)
+        except (EnvironmentError, pickle.PicklingError) as err:
+            raise SaveError(err)
+        finally:
+            if fd is not None:
+                fd.close()
+
+    def load(self, filename=None):
+        """Load Account state from pickle format
+
+        >>> account_name = 'default'
+        >>> timestamp = datetime(2019, 5, 19, 22, 20, 0)
+        >>> acc = Account(42, account_name)
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.apply(Transaction(100, timestamp))
+        >>> acc.apply(Transaction(6250, timestamp, currency='RUB', usd_conversion_rate=62.5))
+        >>> tmp_dir = tempfile.gettempdir()
+        >>> dump_full_filename = os.path.join(tmp_dir, account_name) + '.acc'
+        >>> acc.save(dump_full_filename)
+
+        >>> acc = Account(112, 'new name')
+        >>> acc.load(dump_full_filename)
+        >>> acc.name
+        'default'
+        >>> acc.number
+        42
+        """
+        if filename is not None:
+            self.filename = filename
+        if self.filename is None:
+            raise NoFilenameError(filename)
+
+        if not self.filename.endswith('.acc'):
+            self.filename += '.acc'
+
+        fd = None
+        try:
+            fd = open(self.filename, 'rb')
+            (name, number, transactions) = pickle.load(fd)
+            self.name = name
+            self._number = number
+            self._transactions = transactions
+        except (EnvironmentError, pickle.PicklingError) as err:
+            raise LoadError(err)
+        finally:
+            if fd is not None:
+                fd.close()
 
 
 class Transaction:
@@ -87,3 +296,9 @@ class Transaction:
             self._amount, repr(self._date), self._currency,
             self._usd_conversion_rate, repr(self._description)
         )
+
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod()
